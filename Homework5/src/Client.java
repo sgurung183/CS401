@@ -10,55 +10,75 @@ import java.util.Scanner;
 public class Client {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		try(Socket socket = new Socket("localhost", 1234)) {
+		try{
 			MessageType messageType = null;
-			String textStrigString = "";
+			String textString = "";
 			Scanner scanner = new Scanner(System.in);
 			
-			System.out.print("Enter the message type (TEXT/LOGIN/LOGOUT): ");
-			String typeString = scanner.nextLine();
-			System.out.println();
+			boolean quit = false;
 			
-			System.out.print("Enter the message content: ");
-			textStrigString = scanner.nextLine();
-			System.out.println();
-			
-			switch (typeString.toUpperCase()) {
-			case "TEXT":
-				messageType = MessageType.TEXT;
-				break;
-			case "LOGIN":
-				messageType = MessageType.LOGIN;
-				break;
-			case "LOGOUT":
-				messageType = MessageType.LOGOUT;
-				break;
-			default:
-				messageType = null;
-				break;
-			}
-			
-			
-			
-			Message message = new Message(messageType, MessageStatus.DELIVERED, textStrigString);
-			
-			System.out.println("Socket connected");
-			OutputStream outputStream = socket.getOutputStream();
-			ObjectOutputStream objectOutput = new ObjectOutputStream(outputStream);
-			objectOutput.writeObject(message);
-			
+			Socket socket = new Socket("localhost", 1234);
+		
+			ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream());
-		    try {
-				Message response = (Message) objectInput.readObject();
-				System.out.println("The server responded, " + response.getText());
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			while(!quit) {
+				
+						
+				System.out.print("What action do you want to take? (TEXT/LOGIN/LOGOUT): ");
+				String typeString = scanner.nextLine();
+				
+				
+				switch (typeString.toUpperCase()) {
+				case "TEXT":
+					messageType = MessageType.TEXT;
+					System.out.print("Enter the message content: ");
+					textString = scanner.nextLine();
+					System.out.println();
+					break;
+				case "LOGIN":
+					messageType = MessageType.LOGIN;
+					textString = "Trying to log in";
+					break;
+				case "LOGOUT":
+					messageType = MessageType.LOGOUT;
+					textString ="Logging out";
+					quit = true;
+					break;
+				default:
+					messageType = null;
+					break;
+				}
+				
+				
+				
+				Message message = new Message(messageType, MessageStatus.DELIVERED, textString);
+				
+				
+				
+				objectOutput.writeObject(message);
+				
+				
+			    try {
+					Message response = (Message) objectInput.readObject();
+					System.out.println("The server responded, " + response.getText());
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			    System.out.println();
 			}
+			
+			//close the streams, sockets and the scanner
+			objectInput.close();
+			objectOutput.close();
+			socket.close();
+			scanner.close();
 		}catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 
 	
 	}
